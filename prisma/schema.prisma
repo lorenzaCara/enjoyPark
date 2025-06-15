@@ -1,0 +1,223 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            Int            @id @default(autoincrement())
+  email         String         @unique
+  password      String
+  firstName     String
+  lastName      String
+  recovery_code String?
+  recovery_date DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  tickets       Ticket[]
+  planners      Planner[]
+  notifications Notification[]
+  serviceBookings ServiceBooking[]
+  profileImage  String?
+  role          Role           @default(USER)
+  allowNotifications Boolean   @default(true)
+}
+
+model Ticket {
+  id            Int            @id @default(autoincrement())
+  user          User           @relation(fields: [userId], references: [id])
+  userId        Int
+  ticketType    TicketType     @relation(fields: [ticketTypeId], references: [id])
+  ticketTypeId  Int
+  qrCode        String         @db.Text
+  rawCode       String         @unique
+  purchaseDate  DateTime       @default(now())
+  validFor      DateTime 
+  status        TicketStatus   @default(ACTIVE)
+  discount      Discount?      @relation(fields: [discountId], references: [id])
+  discountId    Int?
+  paymentMethod PaymentMethod?
+  planners      Planner[]
+}
+
+model TicketType {
+  id          Int                    @id @default(autoincrement())
+  name        String                 @unique
+  price       Float
+  description String? // <-- aggiunto campo descrizione opzionale
+  tickets     Ticket[]
+  attractions TicketTypeAttraction[]
+  shows       TicketTypeShow[]
+  services    TicketTypeService[]
+}
+
+model Attraction {
+  id          Int                    @id @default(autoincrement())
+  name        String
+  category    String
+  location    String
+  description String
+  waitTime    Int                    @default(0)
+  mapX        Float?
+  mapY        Float?
+  ticketTypes TicketTypeAttraction[]
+  planners    Planner[]              @relation("PlannerAttractions")
+  waitTimes   WaitTime[]
+}
+
+model Show {
+  id            Int              @id @default(autoincrement())
+  title         String
+  description   String
+  date          DateTime
+  startTime     DateTime
+  endTime       DateTime
+  location      String
+  mapX          Float?
+  mapY          Float?
+  status        ShowStatus       @default(SCHEDULED)
+  ticketTypes   TicketTypeShow[]
+  planners      Planner[]        @relation("PlannerShows")
+  notifications Notification[] // NUOVO: relazione inversa per notifiche
+}
+
+model Service {
+  id              Int                 @id @default(autoincrement())
+  name            String
+  location        String
+  type            String
+  requiresBooking Boolean             @default(false)
+  mapX            Float?
+  mapY            Float?
+  status          ServiceStatus       @default(ACTIVE)
+  ticketTypes     TicketTypeService[]
+  planners        Planner[]           @relation("PlannerServices")
+  bookings        ServiceBooking[]
+}
+
+model ServiceBooking {
+  id            Int            @id @default(autoincrement())
+  planner       Planner        @relation(fields: [plannerId], references: [id], onDelete: Cascade)
+  plannerId     Int
+  service       Service        @relation(fields: [serviceId], references: [id])
+  serviceId     Int
+  user          User           @relation(fields: [userId], references: [id])  // 👈 relazione aggiunta
+  userId        Int
+  bookingTime   DateTime
+  numberOfPeople  Int?      // opzionale
+  specialRequests String?   // opzionale
+  createdAt     DateTime       @default(now())
+  notifications Notification[]
+}
+
+model TicketTypeAttraction {
+  ticketTypeId Int
+  attractionId Int
+  ticketType   TicketType @relation(fields: [ticketTypeId], references: [id])
+  attraction   Attraction @relation(fields: [attractionId], references: [id])
+
+  @@id([ticketTypeId, attractionId])
+}
+
+model TicketTypeShow {
+  ticketTypeId Int
+  showId       Int
+  ticketType   TicketType @relation(fields: [ticketTypeId], references: [id])
+  show         Show       @relation(fields: [showId], references: [id])
+
+  @@id([ticketTypeId, showId])
+}
+
+model TicketTypeService {
+  ticketTypeId Int
+  serviceId    Int
+  ticketType   TicketType @relation(fields: [ticketTypeId], references: [id])
+  service      Service    @relation(fields: [serviceId], references: [id])
+
+  @@id([ticketTypeId, serviceId])
+}
+
+model Planner {
+  id              Int              @id @default(autoincrement())
+  title           String
+  description     String?
+  user            User             @relation(fields: [userId], references: [id])
+  userId          Int
+  date            DateTime
+
+  ticket          Ticket           @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  ticketId        Int              // ← collegamento diretto al biglietto acquistato
+
+  attractions     Attraction[]     @relation("PlannerAttractions")
+  shows           Show[]           @relation("PlannerShows")
+  services        Service[]        @relation("PlannerServices")
+  serviceBookings ServiceBooking[] 
+}
+
+model Discount {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique
+  description String?
+  percentage  Float
+  expiration  DateTime
+  tickets     Ticket[]
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  sendAt    DateTime
+  sent      Boolean  @default(false)
+
+  serviceBookingId Int? // FK opzionale per notifiche legate a ServiceBooking
+  serviceBooking   ServiceBooking? @relation(fields: [serviceBookingId], references: [id])
+
+  showId Int? // NUOVO: FK opzionale per notifiche legate a Show
+  show   Show? @relation(fields: [showId], references: [id])
+}
+
+model WaitTime {
+  id           Int        @id @default(autoincrement())
+  attraction   Attraction @relation(fields: [attractionId], references: [id])
+  attractionId Int
+  time         Int
+  updatedAt    DateTime   @default(now())
+}
+
+enum TicketStatus {
+  ACTIVE
+  USED
+  EXPIRED
+}
+
+enum ShowStatus {
+  SCHEDULED
+  ONGOING
+  CANCELLED
+  DELAYED
+  FINISHED
+}
+
+enum ServiceStatus {
+  ACTIVE
+  UNAVAILABLE
+  MAINTENANCE
+}
+
+enum PaymentMethod {
+  PAYPAL
+  CREDIT_CARD
+}
+
+enum Role {
+  USER
+  STAFF
+}

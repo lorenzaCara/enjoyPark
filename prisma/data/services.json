@@ -1,0 +1,138 @@
+[
+    {
+      "name": "NeoBurger 3000",
+      "location": "Food Court A",
+      "type": "Restaurant",
+      "requiresBooking": false,
+      "mapX": 36.02,
+      "mapY": 49.96,
+      "status": "ACTIVE"
+    },
+    {
+      "name": "Astro Pizza Station",
+      "location": "Sector C",
+      "type": "Restaurant",
+      "requiresBooking": false,
+      "mapX": 76.59,
+      "mapY": 46.82,
+      "status": "ACTIVE"
+    },
+    {
+      "name": "Galaxy Café",
+      "location": "Main Plaza",
+      "type": "Café",
+      "requiresBooking": false,
+      "mapX": 110.83,
+      "mapY": 43.28,
+      "status": "ACTIVE"
+    },
+    {
+      "name": "Intergalactic Souvenirs",
+      "location": "Entrance Hall",
+      "type": "Shop",
+      "requiresBooking": false,
+      "mapX": 160.91,
+      "mapY": 38.27,
+      "status": "ACTIVE"
+    },
+    {
+      "name": "RoboWear Hub",
+      "location": "Sector D",
+      "type": "Clothing",
+      "requiresBooking": false,
+      "mapX": 227.79,
+      "mapY": 26.33,
+      "status": "ACTIVE"
+    },
+    {
+      "name": "Baby Care Station",
+      "location": "Sector K",
+      "type": "Nursery",
+      "requiresBooking": false,
+      "mapX": 29.10,
+      "mapY": 9.0,
+      "status": "ACTIVE"
+    },
+    {
+      "name": "Stroller Rental",
+      "location": "Entrance Hall",
+      "type": "Rental",
+      "requiresBooking": false,
+      "mapX": 27.21,
+      "mapY": 125.98,
+      "status": "ACTIVE"
+    },
+    {
+      "name": "Mobility Scooter Rental",
+      "location": "Entrance Hall",
+      "type": "Rental",
+      "requiresBooking": false,
+      "mapX": 39.06,
+      "mapY": 184.97,
+      "status": "ACTIVE"
+    },
+    {
+      "name": "Accessible Lounge",
+      "location": "Sector G",
+      "type": "Rest Area",
+      "requiresBooking": false,
+      "mapX": 18.13,
+      "mapY": 227.31,
+      "status": "ACTIVE"
+    },
+    {
+      "name": "Restroom – Main Plaza",
+      "location": "Main Plaza",
+      "type": "Restroom",
+      "requiresBooking": false,
+      "mapX": 41.27,
+      "mapY": 213.05,
+      "status": "ACTIVE"
+    },
+    {
+      "name": "Restroom – Sector B",
+      "location": "Sector B",
+      "type": "Restroom",
+      "requiresBooking": false,
+      "mapX": 48.33,
+      "mapY": 233.70,
+      "status": "ACTIVE"
+    },
+    {
+      "name": "VR Photo Booth",
+      "location": "Sector E",
+      "type": "Entertainment",
+      "requiresBooking": false,
+      "mapX": 96.90,
+      "mapY": 284.99,
+      "status": "ACTIVE"
+    },
+    {
+      "name": "Drone Tour Experience",
+      "location": "Sector F",
+      "type": "Tour",
+      "requiresBooking": true,
+      "mapX": 40.16,
+      "mapY": 327.76,
+      "status": "ACTIVE"
+    },
+    {
+      "name": "First Aid Center",
+      "location": "Sector H",
+      "type": "Medical",
+      "requiresBooking": false,
+      "mapX": 78.49,
+      "mapY": 315.26,
+      "status": "ACTIVE"
+    },
+    {
+      "name": "Lost & Found",
+      "location": "Info Center",
+      "type": "Info",
+      "requiresBooking": false,
+      "mapX": 154.11,
+      "mapY": 314.93,
+      "status": "ACTIVE"
+    }
+  ]
+  

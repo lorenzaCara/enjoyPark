@@ -1,0 +1,91 @@
+[
+    {
+      "title": "Cyberlight Parade",
+      "description": "Una parata notturna di luci LED, robot danzanti e droni acrobatici.",
+      "date": "2025-06-20T00:00:00.000Z",
+      "startTime": "2025-06-20T21:00:00.000Z",
+      "endTime": "2025-06-20T22:00:00.000Z",
+      "location": "Neon Theater",
+      "mapX": 10.5,
+      "mapY": 8.3,
+      "status": "SCHEDULED"
+    },
+    {
+      "title": "Drone Wars: Live Battle",
+      "description": "Gare e battaglie simulate tra droni, con effetti audio-visivi spettacolari.",
+      "date": "2025-06-20T00:00:00.000Z",
+      "startTime": "2025-06-20T15:00:00.000Z",
+      "endTime": "2025-06-20T16:00:00.000Z",
+      "location": "Drone Arena",
+      "mapX": 12.3,
+      "mapY": 10.1,
+      "status": "SCHEDULED"
+    },
+    {
+      "title": "Hologram Concert – AI Dreams",
+      "description": "Uno spettacolo musicale generato interamente da intelligenza artificiale e ologrammi.",
+      "date": "2025-06-21T00:00:00.000Z",
+      "startTime": "2025-06-21T19:00:00.000Z",
+      "endTime": "2025-06-21T20:30:00.000Z",
+      "location": "Sky Dome Arena",
+      "mapX": 14.2,
+      "mapY": 12.8,
+      "status": "SCHEDULED"
+    },
+    {
+      "title": "AI Comedy Hour",
+      "description": "Spettacolo comico generato da AI, con sketch interattivi e reazioni dal pubblico.",
+      "date": "2025-06-21T00:00:00.000Z",
+      "startTime": "2025-06-21T20:00:00.000Z",
+      "endTime": "2025-06-21T21:00:00.000Z",
+      "location": "Neon Theater",
+      "mapX": 7.8,
+      "mapY": 11.2,
+      "status": "SCHEDULED"
+    },
+    {
+      "title": "The Quantum Illusionist",
+      "description": "Uno spettacolo di illusionismo futuristico con effetti di realtà aumentata.",
+      "date": "2025-06-22T00:00:00.000Z",
+      "startTime": "2025-06-22T17:00:00.000Z",
+      "endTime": "2025-06-22T18:00:00.000Z",
+      "location": "Neon Theater",
+      "mapX": 6.7,
+      "mapY": 9.4,
+      "status": "SCHEDULED"
+    },
+    {
+      "title": "Robotic Dance Off",
+      "description": "Competizione tra ballerini umani e androidi in coreografie sincronizzate.",
+      "date": "2025-06-22T00:00:00.000Z",
+      "startTime": "2025-06-22T16:00:00.000Z",
+      "endTime": "2025-06-22T17:00:00.000Z",
+      "location": "Drone Arena",
+      "mapX": 9.9,
+      "mapY": 7.5,
+      "status": "SCHEDULED"
+    },
+    {
+      "title": "Starlight Fireworks",
+      "description": "Spettacolo pirotecnico sincronizzato con colonne sonore spaziali e giochi laser.",
+      "date": "2025-06-22T00:00:00.000Z",
+      "startTime": "2025-06-22T22:00:00.000Z",
+      "endTime": "2025-06-22T22:30:00.000Z",
+      "location": "Sky Dome Arena",
+      "mapX": 8.0,
+      "mapY": 6.0,
+      "status": "SCHEDULED"
+    },
+    {
+      "title": "Neon Circus",
+      "description": "Uno spettacolo acrobatico con performer e costumi luminosi al neon.",
+      "date": "2025-06-22T00:00:00.000Z",
+      "startTime": "2025-06-22T14:00:00.000Z",
+      "endTime": "2025-06-22T15:30:00.000Z",
+      "location": "Sky Dome Arena",
+      "mapX": 11.4,
+      "mapY": 5.2,
+      "status": "SCHEDULED"
+    }
+  ]
+  

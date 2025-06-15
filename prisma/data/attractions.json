@@ -1,0 +1,236 @@
+[
+  {
+    "name": "Neon Sky Coaster",
+    "category": "Thrill Ride",
+    "location": "Sector A1",
+    "description": "Un rollercoaster sospeso tra grattacieli digitali con luci al neon e accelerazioni futuristiche.",
+    "waitTime": 0,
+    "mapX": 23.25,
+    "mapY": 256.06
+  },
+  {
+    "name": "Quantum Tower",
+    "category": "Free Fall",
+    "location": "Sector B3",
+    "description": "Un lancio verticale che simula un viaggio nel tempo grazie a effetti sonori e luci sincronizzate.",
+    "waitTime": 0,
+    "mapX": 283.5,
+    "mapY": 259.20
+  },
+  {
+    "name": "Cyber Loop",
+    "category": "Virtual Reality",
+    "location": "Sector C2",
+    "description": "Esperienza immersiva in realtà virtuale all’interno di una metropoli distopica.",
+    "waitTime": 0,
+    "mapX": 293.91,
+    "mapY": 259.77
+  },
+  {
+    "name": "Drone Arena",
+    "category": "Interactive",
+    "location": "Sector D4",
+    "description": "Pilota droni da competizione in un’arena olografica futuristica.",
+    "waitTime": 0,
+    "mapX": 278.57,
+    "mapY": 317.37
+  },
+  {
+    "name": "Anti-Gravity Lab",
+    "category": "Simulation",
+    "location": "Sector E1",
+    "description": "Simulazione di assenza di gravità in un laboratorio spaziale iper-tecnologico.",
+    "waitTime": 0,
+    "mapX": 242.48,
+    "mapY": 179.40
+  },
+  {
+    "name": "NeuroLink Escape",
+    "category": "Escape Room",
+    "location": "Sector F2",
+    "description": "Un escape game in stile cyberpunk con enigmi mentali e tecnologia cerebrale.",
+    "waitTime": 0,
+    "mapX": 145.17,
+    "mapY": 169.62
+  },
+  {
+    "name": "Synthwave Speedway",
+    "category": "Kart",
+    "location": "Sector G1",
+    "description": "Pista di kart futuristica con effetti al neon e colonne sonore synthwave.",
+    "waitTime": 0,
+    "mapX": 145.17,
+    "mapY": 93.65
+  },
+  {
+    "name": "BioDome 9",
+    "category": "Exploration",
+    "location": "Sector H3",
+    "description": "Esplora un ecosistema autosufficiente del futuro in una cupola intelligente.",
+    "waitTime": 0,
+    "mapX": 46.56,
+    "mapY": 59.91
+  },
+  {
+    "name": "AI Command Center",
+    "category": "Simulation",
+    "location": "Sector I2",
+    "description": "Simula il comando di una città del futuro, gestendo robot e infrastrutture intelligenti.",
+    "waitTime": 0,
+    "mapX": 64.1,
+    "mapY": 42.47
+  },
+  {
+    "name": "Lunar Base Z",
+    "category": "Immersive Theater",
+    "location": "Sector J5",
+    "description": "Un viaggio cinematografico e interattivo in una base lunare hi-tech.",
+    "waitTime": 0,
+    "mapX": 70.91,
+    "mapY": 55.7
+  },
+  {
+    "name": "Metro Hyperloop",
+    "category": "Transportation",
+    "location": "Sector K2",
+    "description": "Viaggio ad alta velocità in un treno ipersonico che attraversa tutta la città.",
+    "waitTime": 0,
+    "mapX": 62.35,
+    "mapY": 19.56
+  },
+  {
+    "name": "Cyber Safari",
+    "category": "Exploration",
+    "location": "Sector L1",
+    "description": "Tour in una riserva dove le creature sono robot intelligenti in ambienti simulati.",
+    "waitTime": 0,
+    "mapX": 44.64,
+    "mapY": 27.69
+  },
+  {
+    "name": "Volcanic Core VR",
+    "category": "Virtual Reality",
+    "location": "Sector M3",
+    "description": "Simulazione VR all’interno del nucleo di un pianeta sintetico.",
+    "waitTime": 0,
+    "mapX": 60.63,
+    "mapY": 82.21
+  },
+  {
+    "name": "Plasma Jet Arena",
+    "category": "Laser Tag",
+    "location": "Sector N4",
+    "description": "Combattimento con pistole al plasma in un’arena laser ultra futuristica.",
+    "waitTime": 0,
+    "mapX": 41.31,
+    "mapY": 69.57
+  },
+  {
+    "name": "Mind Maze",
+    "category": "Interactive",
+    "location": "Sector O2",
+    "description": "Labirinto olografico che cambia in base alle tue scelte mentali.",
+    "waitTime": 0,
+    "mapX": 62.32,
+    "mapY": 21.01
+  },
+  {
+    "name": "NanoPark",
+    "category": "Science",
+    "location": "Sector P1",
+    "description": "Scopri come funzionano le nanotecnologie con installazioni e attività pratiche.",
+    "waitTime": 0,
+    "mapX": 27.37,
+    "mapY": 89.18
+  },
+  {
+    "name": "Echo Dome",
+    "category": "Sound Experience",
+    "location": "Sector Q2",
+    "description": "Un ambiente sonoro interattivo controllato dall’intelligenza artificiale.",
+    "waitTime": 0,
+    "mapX": 18.77,
+    "mapY": 33.08
+  },
+  {
+    "name": "HoloRacer",
+    "category": "Simulation",
+    "location": "Sector R1",
+    "description": "Corsa su piste virtuali in ambienti fantascientifici generati proceduralmente.",
+    "waitTime": 0,
+    "mapX": 81.62,
+    "mapY": 97.61
+  },
+  {
+    "name": "Galaxy Drop",
+    "category": "Thrill Ride",
+    "location": "Sector S3",
+    "description": "Un'attrazione ad alta caduta in cui sembri precipitare attraverso galassie virtuali.",
+    "waitTime": 0,
+    "mapX": 67.09,
+    "mapY": 37.62
+  },
+  {
+    "name": "Time Capsule Ride",
+    "category": "Storytelling",
+    "location": "Sector T2",
+    "description": "Un viaggio interattivo che attraversa epoche future con scenografie in movimento.",
+    "waitTime": 0,
+    "mapX": 40.5,
+    "mapY": 66.3
+  },
+  {
+    "name": "Mini Mech Playground",
+    "category": "Kids",
+    "location": "Sector U1",
+    "description": "Parco giochi con mini robot e circuiti semplici per interazioni sicure.",
+    "waitTime": 0,
+    "mapX": 113.93,
+    "mapY": 26.58
+  },
+  {
+    "name": "Baby Hyperloop",
+    "category": "Kids",
+    "location": "Sector V2",
+    "description": "Versione per bambini del treno super veloce, lenta e sicura.",
+    "waitTime": 0,
+    "mapX": 65.46,
+    "mapY": 159.25
+  },
+  {
+    "name": "Robot Friends Lab",
+    "category": "Kids",
+    "location": "Sector W3",
+    "description": "Laboratorio per bambini per costruire e programmare mini robot giocattolo.",
+    "waitTime": 0,
+    "mapX": 112.31,
+    "mapY": 171.20
+  },
+  {
+    "name": "Stellar Sandbox",
+    "category": "Kids",
+    "location": "Sector X4",
+    "description": "Area giochi con sabbia interattiva, luci e forme del sistema solare.",
+    "waitTime": 0,
+    "mapX": 82.17,
+    "mapY": 139.97
+  },
+  {
+    "name": "Bubble Drone Zone",
+    "category": "Kids",
+    "location": "Sector Y1",
+    "description": "Droni che fanno bolle di sapone giganti in un'area sicura e colorata.",
+    "waitTime": 0,
+    "mapX": 129.66,
+    "mapY": 109.19
+  },
+  {
+    "name": "Little Cyberspace",
+    "category": "Kids",
+    "location": "Sector Z2",
+    "description": "Esperienza VR semplificata per bambini con ambientazioni dolci e divertenti.",
+    "waitTime": 0,
+    "mapX": 147,
+    "mapY": 87
+  }
+]

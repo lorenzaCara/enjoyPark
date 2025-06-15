@@ -1,0 +1,35 @@
+[
+    {
+      "name": "STANDARD",
+      "price": 100.0,
+      "description": "Includes general admission to the park with access to standard attractions.",
+      "attractions": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+      "shows": [1, 2, 4, 5, 7, 8],
+      "services": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+    },
+    {
+      "name": "KID",
+      "price": 60.0,
+      "description": "Special ticket for children under 12, with access to family-friendly attractions.",
+      "attractions": [20, 21, 22, 23, 24, 25, 26],
+      "shows": [3, 6],
+      "services": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+    },
+    {
+      "name": "FAST ACCESS",
+      "price": 180.0,
+      "description": "Includes park admission and fast-lane access to major rides.",
+      "attractions": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+      "shows": [1, 2, 4, 5, 6, 7, 8],
+      "services": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+    },
+    {
+      "name": "VIP",
+      "price": 250.0,
+      "description": "All-inclusive ticket with priority access, exclusive experiences, and VIP lounges.",
+      "attractions": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26],
+      "shows": [1, 2, 3, 4, 5, 6, 7, 8],
+      "services": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+    }
+  ]
+  
