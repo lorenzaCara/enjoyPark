@@ -14,24 +14,21 @@ import serviceBookingRouter from "./routes/serviceBooking.route.js";
 import cron from 'node-cron';
 import prisma from "./prisma/prismaClient.js";
 import notificationRouter from "./routes/notification.route.js";
-import profileRouter from "./routes/profile.route.js"; // Presumo che questa route gestirà l'upload
+// import profileRouter from "./routes/profile.route.js"; // Lo importeremo e gli passeremo il bucket
 import fileUpload from "express-fileupload";
 import { startExpireTicketsJob } from "./config/expiredTickets.js";
-import { Storage } from '@google-cloud/storage'; // Importa la libreria GCS
-import path from 'path'; // Necessario per path.extname
-import { v4 as uuidv4 } from 'uuid'; // Per generare nomi file unici, assicurati di installare 'uuid' (npm install uuid)
+import { Storage } from '@google-cloud/storage';
+import path from 'path';
+import { v4 as uuidv4 } from 'uuid';
 
-// Install npm i dotenv + insert this line. Useful if .env is not read
 dotenv.config();
 
 const PORT = process.env.PORT || 3000;
-
 const app = express();
 
 const allowedOrigins = [
-  process.env.FRONTEND_URL, // Your main Vercel app domain (e.g., https://enjoypark.vercel.app)
-  /^https:\/\/.*\.vercel\.app$/, // Allows any subdomain of .vercel.app (for preview deployments)
-  // Add other specific origins if needed, e.g., for local development: 'http://localhost:5173'
+  process.env.FRONTEND_URL,
+  /^https:\/\/.*\.vercel\.app$/,
 ];
 
 app.use(cors({
@@ -53,32 +50,28 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 }));
 
-// Middleware for parsing JSON
 app.use(express.json());
 app.use(fileUpload());
 
-// --- INIZIO INTEGRAZIONE GOOGLE CLOUD STORAGE ---
-let storage;
-let gcsBucket;
+// --- INTEGRAZIONE GOOGLE CLOUD STORAGE CENTRALIZZATA ---
+let gcsBucketInstance; // Rinomino per chiarezza, sarà l'istanza del bucket
+let isGcsConfigured = false; // Flag per sapere se GCS è stato configurato con successo
 
 try {
-  if (process.env.GCS_KEYFILE_JSON) {
+  if (process.env.GCS_KEYFILE_JSON && process.env.GCS_BUCKET_NAME) {
     const gcsKeyfile = JSON.parse(process.env.GCS_KEYFILE_JSON);
-    storage = new Storage({
+    const storageClient = new Storage({
       projectId: gcsKeyfile.project_id,
       credentials: {
         client_email: gcsKeyfile.client_email,
-        private_key: gcsKeyfile.private_key.replace(/\\n/g, '\n'), // Sostituisci \\n con \n
+        private_key: gcsKeyfile.private_key.replace(/\\n/g, '\n'),
       },
     });
-    if (process.env.GCS_BUCKET_NAME) {
-      gcsBucket = storage.bucket(process.env.GCS_BUCKET_NAME);
-      console.log(`✅ Google Cloud Storage bucket '${process.env.GCS_BUCKET_NAME}' initialized.`);
-    } else {
-      console.error("ERRORE: Variabile d'ambiente GCS_BUCKET_NAME non definita.");
-    }
+    gcsBucketInstance = storageClient.bucket(process.env.GCS_BUCKET_NAME);
+    isGcsConfigured = true;
+    console.log(`✅ Google Cloud Storage bucket '${process.env.GCS_BUCKET_NAME}' initialized.`);
   } else {
-    console.error("ERRORE: Variabile d'ambiente GCS_KEYFILE_JSON non definita. GCS non inizializzato.");
+    console.error("ERRORE: Variabili d'ambiente GCS_KEYFILE_JSON o GCS_BUCKET_NAME non definite. GCS non inizializzato.");
   }
 } catch (error) {
   console.error("ERRORE: Impossibile inizializzare Google Cloud Storage. Controlla GCS_KEYFILE_JSON:", error);
@@ -95,7 +88,7 @@ console.log('✅ Cron active - current time:', new Date().toISOString());
 
 cron.schedule('* * * * *', async () => {
   const now = new Date();
-  const localNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+  const localNow = new Date(now.getTime() + 2 * 60 * 60 * 1000); // Questo potrebbe essere influenzato dal fuso orario del server
   console.log(`🔁 Checking notifications at ${now.toISOString()}`);
 
   try {
@@ -128,8 +121,10 @@ cron.schedule('* * * * *', async () => {
 // Routes
 app.use(authRouter);
 
+// Questo endpoint di test va bene per testare GCS, ma poi lo toglieremo
+// o lo integreremo nelle tue route di profilo/gestione immagini reali.
 app.post('/upload-test', async (req, res) => {
-  if (!gcsBucket) {
+  if (!isGcsConfigured || !gcsBucketInstance) {
     return res.status(500).json({ error: "Google Cloud Storage non è configurato correttamente sul server." });
   }
 
@@ -140,31 +135,31 @@ app.post('/upload-test', async (req, res) => {
   const uploadedFile = req.files.image; // Assumendo che il nome del campo input sia 'image'
   const userId = req.body.userId || 'temp_user'; // Dovresti ottenere l'ID utente dall'autenticazione
 
-  // Genera un nome file univoco e includi una "cartella" per l'utente o il tipo di risorsa
   const fileExtension = path.extname(uploadedFile.name);
-  const fileName = `${userId}/${uuidv4()}${fileExtension}`;
-  const file = gcsBucket.file(fileName);
+  const fileName = `${userId}/${uuidv4()}${fileExtension}`; // Esempio: 'user123/abc-xyz.jpg'
+  const file = gcsBucketInstance.file(fileName);
 
   try {
     const stream = file.createWriteStream({
       metadata: {
         contentType: uploadedFile.mimetype,
       },
-      resumable: false, // Per file più piccoli e deploy su Render, spesso aiuta
+      resumable: false,
+      public: true, // Rende il file pubblicamente leggibile all'upload
+      predefinedAcl: 'publicRead' // Richiede che la "Public access prevention" del bucket sia DISABILITATA.
     });
 
     stream.end(uploadedFile.data);
 
     await new Promise((resolve, reject) => {
       stream.on('finish', resolve);
-      stream.on('error', reject);
+      stream.on('error', (err) => {
+        console.error('Stream error:', err);
+        reject(err);
+      });
     });
 
-    // Rende il file pubblicamente leggibile. Richiede che la "Public access prevention" del bucket sia DISABILITATA.
-    await file.makePublic();
-
     const publicUrl = `https://storage.googleapis.com/${process.env.GCS_BUCKET_NAME}/${fileName}`;
-
 
     res.status(200).json({
       message: 'File caricato con successo su Google Cloud Storage!',
@@ -177,13 +172,18 @@ app.post('/upload-test', async (req, res) => {
   }
 });
 
+// IMPORTA E USA profileRouter PASSANDOGLI L'ISTANZA DEL BUCKET
+import { createProfileRouter } from "./routes/profile.route.js";
+// Passa l'istanza del bucket GCS alla funzione che crea il router del profilo
+// Il router riceverà 'gcsBucketInstance' e 'isGcsConfigured'
+app.use(createProfileRouter(gcsBucketInstance, isGcsConfigured));
+
 // Tutte le tue altre routes
-app.use(profileRouter); // Assicurati che questa route non contenga più il salvataggio locale dei file!
 app.use(attractionsRouter);
-app.use(showsRouter);
-app.use(servicesRouter);
 app.use(ticketsRouter);
 app.use(plannerRouter);
+app.use(showsRouter);
+app.use(servicesRouter);
 app.use(serviceBookingRouter);
 app.use(notificationRouter);
 

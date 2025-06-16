@@ -1,170 +1,211 @@
 import express from 'express';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
-import path from 'path';
-import { v4 as uuid } from 'uuid'; // import uuid to generate a unique id for images
-import fs from 'fs'; // import fs to create folders if they don't exist
+import path from 'path'; // Ancora utile per path.extname
+import { v4 as uuid } from 'uuid';
+// Non useremo più fs
+// import fs from 'fs'; 
 import prisma from '../prisma/prismaClient.js';
 import bcrypt from 'bcrypt';
+// Non importiamo più Storage qui, lo riceviamo come argomento
 
 const acceptedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
 
-const profileRouter = express.Router();
+// Cambiamo l'export per essere una funzione che accetta il bucket GCS
+export const createProfileRouter = (gcsBucket, isGcsConfigured) => {
+    const profileRouter = express.Router();
 
-const DIRNAME = path.resolve(); 
-// used to get the absolute path of the folder where this file is located.
-// If using Node modules, __dirname is not defined, so this is a workaround.
+    // Rimuovi DIRNAME se non usato per altre logiche legate al filesystem locale
+    // const DIRNAME = path.resolve(); 
 
-profileRouter.post('/profile/image', authMiddleware, (req, res) => {
-    console.log(req.files);
+    // --- MODIFICA DELL'ENDPOINT DI UPLOAD DELL'IMMAGINE PROFILO ---
+    profileRouter.post('/profile/image', authMiddleware, async (req, res) => {
+        if (!isGcsConfigured || !gcsBucket) {
+            return res.status(500).json({ message: "Google Cloud Storage non è configurato correttamente sul server." });
+        }
 
-    // in req.files.image, "image" is the form field name
-    if (Array.isArray(req.files.image)) {
-        return res.status(400).json({ message: 'You must upload only one file' });
-    }
+        if (!req.files || !req.files.image) {
+            return res.status(400).json({ message: 'Nessun file fornito.' });
+        }
 
-    if (!acceptedTypes.includes(req.files.image.mimetype)) {
-        return res.status(400).json({ message: 'Unsupported format, only ' + acceptedTypes.join(', ') + ' are accepted' });
-    }
-    
-    const ext = req.files.image.name.split('.').pop(); // pop() removes and returns the last element of the array
-    const filename = uuid() + '.' + ext;
-    // uuid() generates a unique id. Without the extension the file won't upload correctly.
+        if (Array.isArray(req.files.image)) {
+            return res.status(400).json({ message: 'È consentito caricare un solo file.' });
+        }
 
-    // req.user.id is the logged-in user's id, used to create a unique folder for each user.
-    const uploadPath = path.join(
-        DIRNAME,
-        'uploads',
-        'user' + req.user.id,
-        filename
-    );
+        if (!acceptedTypes.includes(req.files.image.mimetype)) {
+            return res.status(400).json({ message: 'Formato non supportato. Sono accettati solo ' + acceptedTypes.join(', ') + '.' });
+        }
+        
+        const ext = path.extname(req.files.image.name); // Usa path.extname per l'estensione
+        // Genera un nome file unico per GCS
+        // Usa una "cartella" all'interno del bucket per organizzare (es. 'profile-images')
+        const filename = `profile-images/${req.user.id}-${uuid()}${ext}`; 
+        
+        // Ottieni il "blob" di GCS (l'oggetto file all'interno del bucket)
+        const blob = gcsBucket.file(filename);
+        const blobStream = blob.createWriteStream({
+            resumable: false,
+            contentType: req.files.image.mimetype,
+            public: true, // Rende il file pubblicamente leggibile all'upload
+            predefinedAcl: 'publicRead' // Richiede che la "Public access prevention" del bucket sia DISABILITATA.
+        });
 
-    // fs is a Node.js module for interacting with the file system.
-    // if the folder exists, it adds the file; if the folder doesn't exist, it creates it and then adds the file.
-    fs.mkdirSync(path.join(
-        DIRNAME,
-        'uploads',
-        'user' + req.user.id
-    ), { recursive: true }); // recursive: true creates the folder if it doesn't exist, including parent folders.
+        blobStream.on('error', (err) => {
+            console.error('Errore durante l\'upload su Google Cloud Storage:', err);
+            return res.status(500).json({ message: 'Errore durante il caricamento dell\'immagine su cloud storage.' });
+        });
 
-    // mv stands for move (method to move files inside our machine)
-    
-    try {
-        // if the user already has a profile image, delete it first
-        !!req.user.profileImage && fs.rmSync(path.join(DIRNAME, req.user.profileImage))
-    } catch (error) {
-        // ignore errors on delete
-    }
+        blobStream.on('finish', async () => {
+            const publicUrl = `https://storage.googleapis.com/${gcsBucket.name}/${filename}`; // Usa gcsBucket.name
 
-    try {
-        // mv is a method of fileUpload to move files from one folder to another.
-        req.files.image.mv(uploadPath, async (err) => {
-            if (err) {
-                throw new Error(err);
+            try {
+                // Se l'utente aveva già un'immagine, elimina quella vecchia da GCS
+                if (req.user.profileImageUrl) { 
+                    // Estrai il percorso del file dal vecchio URL GCS
+                    const oldFilePath = req.user.profileImageUrl.replace(`https://storage.googleapis.com/${gcsBucket.name}/`, '');
+                    const oldBlob = gcsBucket.file(oldFilePath);
+                    try {
+                        await oldBlob.delete();
+                        console.log(`Vecchia immagine ${req.user.profileImageUrl} eliminata da GCS.`);
+                    } catch (deleteError) {
+                        // Ignora l'errore se il file non esiste o non può essere eliminato
+                        console.warn(`Impossibile eliminare la vecchia immagine da GCS: ${deleteError.message}`);
+                    }
+                }
+
+                // Aggiorna il database con il nuovo URL pubblico di GCS
+                const updatedUser = await prisma.user.update({
+                    where: { id: req.user.id },
+                    data: {
+                        profileImageUrl: publicUrl 
+                    },
+                    select: { 
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        email: true,
+                        profileImageUrl: true, // Restituisci il nuovo URL al frontend
+                        // ... altri campi che vuoi inviare al frontend
+                    }
+                });
+
+                res.status(200).json({ 
+                    message: 'Immagine caricata con successo!',
+                    imageUrl: publicUrl,
+                    user: updatedUser 
+                });
+            } catch (dbError) {
+                console.error('Errore durante l\'aggiornamento del database o eliminazione vecchia immagine:', dbError);
+                return res.status(500).json({ message: 'Errore durante l\'aggiornamento del profilo con l\'URL dell\'immagine.' });
+            }
+        });
+
+        blobStream.end(req.files.image.data);
+    });
+
+    // --- MODIFICA DELL'ENDPOINT DI RECUPERO DELL'IMMAGINE PROFILO ---
+    profileRouter.get('/profile/image', authMiddleware, async (req, res) => {
+        try {
+            const user = await prisma.user.findUnique({
+                where: { id: req.user.id },
+                select: { profileImageUrl: true } 
+            });
+
+            if (user && user.profileImageUrl) {
+                return res.status(200).json({ imageUrl: user.profileImageUrl });
+            } else {
+                return res.status(404).json({ message: 'Immagine del profilo non trovata.' });
+            }
+        } catch (error) {
+            console.error('Errore durante il recupero dell\'URL dell\'immagine:', error);
+            return res.status(500).json({ message: 'Errore interno del server.' });
+        }
+    });
+
+    // Add this route below the others in your profileRouter
+    profileRouter.put('/profile/update', authMiddleware, async (req, res) => {
+        try {
+            const { firstName, lastName, email } = req.body; // Rimossa password, gestita da updateUserPassword
+
+            if (!req.user || !req.user.id) {
+                return res.status(401).json({ message: 'User not authenticated' });
             }
 
-            await prisma.user.update({
+            const updatedUser = await prisma.user.update({
                 where: { id: req.user.id },
-                data: {
-                    profileImage: uploadPath.replace(DIRNAME, '') // remove absolute path, leave relative path
+                data: { firstName, lastName, email },
+                select: { 
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    email: true,
+                    profileImageUrl: true, // Includi profileImageUrl
+                    // ... altri campi
                 }
             });
 
-            res.sendFile(uploadPath);
-            /* res.json({ message: 'File uploaded!' }); */
-        });
-    } catch (error) {
-        res.status(400).json({ message: error.message });
-    }
-});
-
-// The img tag cannot set headers, so it cannot make an authenticated request.
-// So we cannot use authMiddleware here.
-profileRouter.get('/profile/image', authMiddleware, (req, res) => {
-    try {
-        res.sendFile(path.join(DIRNAME, req.user.profileImage));
-    } catch (error) {
-        res.status(400).json({});
-    }
-});
-
-// Add this route below the others in your profileRouter
-profileRouter.put('/profile/update', authMiddleware, async (req, res) => {
-    try {
-        const { firstName, lastName, email, password } = req.body; // fields to update
-
-        if (!req.user || !req.user.id) {
-            return res.status(401).json({ message: 'User not authenticated' });
+            res.json({ message: 'Profile updated', user: updatedUser });
+        } catch (error) {
+            console.error('Error updating profile:', error);
+            res.status(500).json({ message: 'Internal error during profile update' });
         }
+    });
 
-        // Basic example: update only provided fields
-        const updatedUser = await prisma.user.update({
-            where: { id: req.user.id },
-            data: { firstName, lastName, email }, // you can also include password if you want to update it, with hashing!
-        });
+    profileRouter.put('/profile/password', authMiddleware, async (req, res) => {
+        try {
+            const { currentPassword, newPassword } = req.body;
 
-        res.json({ message: 'Profile updated', user: updatedUser });
-    } catch (error) {
-        console.error('Error updating profile:', error);
-        res.status(500).json({ message: 'Internal error during profile update' });
-    }
-});
+            if (!currentPassword || !newPassword) {
+                return res.status(400).json({ message: 'Please provide current and new passwords.' });
+            }
 
-profileRouter.put('/profile/password', authMiddleware, async (req, res) => {
-    try {
-        const { currentPassword, newPassword } = req.body;
+            const user = await prisma.user.findUnique({
+                where: { id: req.user.id },
+            });
 
-        if (!currentPassword || !newPassword) {
-            return res.status(400).json({ message: 'Please provide current and new passwords.' });
+            if (!user) {
+                return res.status(404).json({ message: 'User not found.' });
+            }
+
+            const isMatch = await bcrypt.compare(currentPassword, user.password);
+            if (!isMatch) {
+                return res.status(401).json({ message: 'Current password is incorrect.' });
+            }
+
+            const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+            await prisma.user.update({
+                where: { id: req.user.id },
+                data: { password: hashedPassword },
+            });
+
+            res.json({ message: 'Password successfully updated!' });
+        } catch (error) {
+            console.error('Error changing password:', error);
+            res.status(500).json({ message: 'Internal server error.' });
         }
+    });
 
-        const user = await prisma.user.findUnique({
-            where: { id: req.user.id },
-        });
+    profileRouter.patch('/profile/notifications-toggle', authMiddleware, async (req, res) => {
+        try {
+            const userId = req.user.id;
+            const { allowNotifications } = req.body;
 
-        if (!user) {
-            return res.status(404).json({ message: 'User not found.' });
+            if (typeof allowNotifications !== 'boolean') {
+                return res.status(400).json({ message: 'Invalid allowNotifications value' });
+            }
+
+            const updatedUser = await prisma.user.update({
+                where: { id: userId },
+                data: { allowNotifications },
+                select: { id: true, allowNotifications: true }
+            });
+
+            res.json({ message: 'Notification setting updated', user: updatedUser });
+        } catch (error) {
+            console.error('Error updating notification settings:', error);
+            res.status(500).json({ message: 'Server error' });
         }
+    });
 
-        const isMatch = await bcrypt.compare(currentPassword, user.password);
-        if (!isMatch) {
-            return res.status(401).json({ message: 'Current password is incorrect.' });
-        }
-
-        const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-        await prisma.user.update({
-            where: { id: req.user.id },
-            data: { password: hashedPassword },
-        });
-
-        res.json({ message: 'Password successfully updated!' });
-    } catch (error) {
-        console.error('Error changing password:', error);
-        res.status(500).json({ message: 'Internal server error.' });
-    }
-});
-
-// Route to update push notification preference
-profileRouter.patch('/profile/notifications-toggle', authMiddleware, async (req, res) => {
-    try {
-        const userId = req.user.id;
-        const { allowNotifications } = req.body;
-
-        if (typeof allowNotifications !== 'boolean') {
-            return res.status(400).json({ message: 'Invalid allowNotifications value' });
-        }
-
-        const updatedUser = await prisma.user.update({
-            where: { id: userId },
-            data: { allowNotifications },
-            select: { id: true, allowNotifications: true }
-        });
-
-        res.json({ message: 'Notification setting updated', user: updatedUser });
-    } catch (error) {
-        console.error('Error updating notification settings:', error);
-        res.status(500).json({ message: 'Server error' });
-    }
-});
-
-export default profileRouter;
+    return profileRouter; // Restituisci l'istanza del router
+};
