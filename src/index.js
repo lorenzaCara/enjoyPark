@@ -33,27 +33,21 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps, curl requests, or same-origin)
       if (!origin) return callback(null, true);
-
-      // Check if the origin matches any of the allowed patterns
       if (allowedOrigins.some(pattern => {
           if (typeof pattern === 'string') {
-              // For exact string matches, handle trailing slashes
               return origin === pattern || origin === pattern.replace(/\/$/, '');
           }
-          // For regex patterns
           return pattern.test(origin);
       })) {
           return callback(null, true);
       }
-      // If origin is not in allowed list, block it
-      console.warn(`CORS blocked request from origin: ${origin}`); // Log blocked origins
+      console.warn(`CORS blocked request from origin: ${origin}`);
       return callback(new Error('The CORS policy for this site does not allow access from the specified Origin.'), false);
   },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'], // Explicitly list all methods your API uses
-  credentials: true, // Allow cookies to be sent with cross-origin requests
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'], // Add any custom headers your frontend sends
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 }));
 
 // Middleware for parsing JSON
