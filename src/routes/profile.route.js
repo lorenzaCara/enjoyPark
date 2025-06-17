@@ -59,13 +59,13 @@ export const createProfileRouter = (gcsBucket, isGcsConfigured) => {
 
             try {
                 // Se l'utente aveva già un'immagine, elimina quella vecchia da GCS
-                if (req.user.profileImageUrl) { 
+                if (req.user.profileImage) { 
                     // Estrai il percorso del file dal vecchio URL GCS
-                    const oldFilePath = req.user.profileImageUrl.replace(`https://storage.googleapis.com/${gcsBucket.name}/`, '');
+                    const oldFilePath = req.user.profileImage.replace(`https://storage.googleapis.com/${gcsBucket.name}/`, '');
                     const oldBlob = gcsBucket.file(oldFilePath);
                     try {
                         await oldBlob.delete();
-                        console.log(`Vecchia immagine ${req.user.profileImageUrl} eliminata da GCS.`);
+                        console.log(`Vecchia immagine ${req.user.profileImage} eliminata da GCS.`);
                     } catch (deleteError) {
                         // Ignora l'errore se il file non esiste o non può essere eliminato
                         console.warn(`Impossibile eliminare la vecchia immagine da GCS: ${deleteError.message}`);
@@ -76,14 +76,14 @@ export const createProfileRouter = (gcsBucket, isGcsConfigured) => {
                 const updatedUser = await prisma.user.update({
                     where: { id: req.user.id },
                     data: {
-                        profileImageUrl: publicUrl 
+                        profileImage: publicUrl 
                     },
                     select: { 
                         id: true,
                         firstName: true,
                         lastName: true,
                         email: true,
-                        profileImageUrl: true, // Restituisci il nuovo URL al frontend
+                        profileImage: true, // Restituisci il nuovo URL al frontend
                         // ... altri campi che vuoi inviare al frontend
                     }
                 });
@@ -107,11 +107,11 @@ export const createProfileRouter = (gcsBucket, isGcsConfigured) => {
         try {
             const user = await prisma.user.findUnique({
                 where: { id: req.user.id },
-                select: { profileImageUrl: true } 
+                select: { profileImage: true } 
             });
 
-            if (user && user.profileImageUrl) {
-                return res.status(200).json({ imageUrl: user.profileImageUrl });
+            if (user && user.profileImage) {
+                return res.status(200).json({ imageUrl: user.profileImage });
             } else {
                 return res.status(404).json({ message: 'Immagine del profilo non trovata.' });
             }
@@ -138,7 +138,7 @@ export const createProfileRouter = (gcsBucket, isGcsConfigured) => {
                     firstName: true,
                     lastName: true,
                     email: true,
-                    profileImageUrl: true, // Includi profileImageUrl
+                    profileImage: true, // Includi profileImageUrl
                     // ... altri campi
                 }
             });
