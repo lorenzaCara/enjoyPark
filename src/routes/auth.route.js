@@ -108,7 +108,7 @@ authRouter.post('/google-login', async (req, res) => {
           lastName: name?.split(' ').slice(1).join(' ') || '',
           email,
           password: '',
-          image: picture || null,
+          profileImage: picture || null,
           role: 'USER'
         },
       });
