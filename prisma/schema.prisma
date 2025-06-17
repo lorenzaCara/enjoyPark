@@ -21,7 +21,7 @@ model User {
   planners      Planner[]
   notifications Notification[]
   serviceBookings ServiceBooking[]
-  profileImage  String?
+  profileImageUrl  String?
   role          Role           @default(USER)
   allowNotifications Boolean   @default(true)
 }
