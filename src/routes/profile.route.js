@@ -150,40 +150,67 @@ export const createProfileRouter = (gcsBucket, isGcsConfigured) => {
         }
     });
 
-    profileRouter.put('/profile/password', authMiddleware, async (req, res) => {
+    profileRouter.put('/update-profile/:userId', async (req, res) => {
+        const userId = parseInt(req.params.userId);
+        // const newProfileImageFile = req.file;
+      
         try {
-            const { currentPassword, newPassword } = req.body;
-
-            if (!currentPassword || !newPassword) {
-                return res.status(400).json({ message: 'Please provide current and new passwords.' });
+          const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { profileImage: true }
+          });
+      
+          if (!user) {
+            return res.status(404).json({ message: "User not found" });
+          }
+      
+          const oldProfileImageUrl = user.profileImage;
+      
+          const gcsBaseUrl = `https://storage.googleapis.com/${process.env.GCS_BUCKET_NAME}/`;
+      
+          if (oldProfileImageUrl && oldProfileImageUrl.startsWith(gcsBaseUrl)) {
+              const objectPath = oldProfileImageUrl.substring(gcsBaseUrl.length);
+              try {
+                  await bucket.file(objectPath).delete();
+                  console.log(`Vecchia immagine ${oldProfileImageUrl} eliminata da GCS.`);
+              } catch (deleteError) {
+                  if (deleteError.code === 404 || deleteError.message.includes('No such object')) {
+                      console.warn(`Impossibile eliminare la vecchia immagine da GCS: Oggetto non trovato (${objectPath}).`);
+                  } else {
+                      console.error(`Errore durante l'eliminazione della vecchia immagine da GCS (${objectPath}):`, deleteError);
+                  }
+              }
+          } else if (oldProfileImageUrl) {
+              console.log(`La vecchia immagine è un URL esterno (${oldProfileImageUrl}), non eliminata dal bucket GCS.`);
+          }
+      
+          let newImageUrl = oldProfileImageUrl;
+      
+          // if (newProfileImageFile) {
+          //   const fileName = `profile-images/${userId}-${Date.now()}-${newProfileImageFile.originalname}`;
+          //   const file = bucket.file(fileName);
+          //   await file.save(newProfileImageFile.buffer, {
+          //     contentType: newProfileImageFile.mimetype,
+          //     public: true,
+          //   });
+          //   newImageUrl = `https://storage.googleapis.com/${process.env.GCS_BUCKET_NAME}/${fileName}`;
+          // }
+      
+          const updatedUser = await prisma.user.update({
+            where: { id: userId },
+            data: {
+              profileImage: newImageUrl,
             }
-
-            const user = await prisma.user.findUnique({
-                where: { id: req.user.id },
-            });
-
-            if (!user) {
-                return res.status(404).json({ message: 'User not found.' });
-            }
-
-            const isMatch = await bcrypt.compare(currentPassword, user.password);
-            if (!isMatch) {
-                return res.status(401).json({ message: 'Current password is incorrect.' });
-            }
-
-            const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-            await prisma.user.update({
-                where: { id: req.user.id },
-                data: { password: hashedPassword },
-            });
-
-            res.json({ message: 'Password successfully updated!' });
+          });
+      
+          const { password, ...userWithoutPassword } = updatedUser;
+          res.json({ message: "Profile updated successfully", user: userWithoutPassword });
+      
         } catch (error) {
-            console.error('Error changing password:', error);
-            res.status(500).json({ message: 'Internal server error.' });
+          console.error('Error in update-profile route:', error);
+          res.status(500).json({ message: 'Error updating profile' });
         }
-    });
+      });
 
     profileRouter.patch('/profile/notifications-toggle', authMiddleware, async (req, res) => {
         try {
