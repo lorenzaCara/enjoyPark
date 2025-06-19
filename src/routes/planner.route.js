@@ -236,6 +236,150 @@ plannerRouter.put(
   }
 );
 
+// PATCH - Add an attraction to a planner
+plannerRouter.patch('/planners/:id/add-attraction', authMiddleware, async (req, res) => {
+  const { id } = req.params;
+  const { attractionId } = req.body;
+
+  try {
+    const planner = await prisma.planner.findUnique({
+      where: { id: parseInt(id) },
+      include: { ticket: true, attractions: true },
+    });
+
+    if (!planner) {
+      return res.status(404).json({ message: "Planner not found" });
+    }
+
+    const isValid = await prisma.ticketTypeAttraction.findFirst({
+      where: {
+        ticketTypeId: planner.ticket.ticketTypeId,
+        attractionId,
+      },
+    });
+
+    if (!isValid) {
+      return res.status(403).json({ message: "Attraction not valid for ticket type" });
+    }
+
+    const alreadyAdded = planner.attractions.some(a => a.id === attractionId);
+    if (alreadyAdded) {
+      return res.status(409).json({ message: "Attraction already added to planner" });
+    }
+
+    const updated = await prisma.planner.update({
+      where: { id: parseInt(id) },
+      data: {
+        attractions: {
+          connect: { id: attractionId },
+        },
+      },
+      include: { attractions: true },
+    });
+
+    res.json(updated);
+  } catch (error) {
+    console.error("Error adding attraction:", error);
+    res.status(500).json({ message: "Server error while adding attraction" });
+  }
+});
+
+// PATCH - Add a show to a planner
+plannerRouter.patch('/planners/:id/add-show', authMiddleware, async (req, res) => {
+  const { id } = req.params;
+  const { showId } = req.body;
+
+  try {
+    const planner = await prisma.planner.findUnique({
+      where: { id: parseInt(id) },
+      include: { ticket: true, shows: true },
+    });
+
+    if (!planner) {
+      return res.status(404).json({ message: "Planner not found" });
+    }
+
+    const isValid = await prisma.ticketTypeShow.findFirst({
+      where: {
+        ticketTypeId: planner.ticket.ticketTypeId,
+        showId,
+      },
+    });
+
+    if (!isValid) {
+      return res.status(403).json({ message: "Show not valid for ticket type" });
+    }
+
+    const alreadyAdded = planner.shows.some(s => s.id === showId);
+    if (alreadyAdded) {
+      return res.status(409).json({ message: "Show already added to planner" });
+    }
+
+    const updated = await prisma.planner.update({
+      where: { id: parseInt(id) },
+      data: {
+        shows: {
+          connect: { id: showId },
+        },
+      },
+      include: { shows: true },
+    });
+
+    res.json(updated);
+  } catch (error) {
+    console.error("Error adding show:", error);
+    res.status(500).json({ message: "Server error while adding show" });
+  }
+});
+
+// PATCH - Add a service to a planner
+plannerRouter.patch('/planners/:id/add-service', authMiddleware, async (req, res) => {
+  const { id } = req.params;
+  const { serviceId } = req.body;
+
+  try {
+    const planner = await prisma.planner.findUnique({
+      where: { id: parseInt(id) },
+      include: { ticket: true, services: true },
+    });
+
+    if (!planner) {
+      return res.status(404).json({ message: "Planner not found" });
+    }
+
+    const isValid = await prisma.ticketTypeService.findFirst({
+      where: {
+        ticketTypeId: planner.ticket.ticketTypeId,
+        serviceId,
+      },
+    });
+
+    if (!isValid) {
+      return res.status(403).json({ message: "Service not valid for ticket type" });
+    }
+
+    const alreadyAdded = planner.services.some(s => s.id === serviceId);
+    if (alreadyAdded) {
+      return res.status(409).json({ message: "Service already added to planner" });
+    }
+
+    const updated = await prisma.planner.update({
+      where: { id: parseInt(id) },
+      data: {
+        services: {
+          connect: { id: serviceId },
+        },
+      },
+      include: { services: true },
+    });
+
+    res.json(updated);
+  } catch (error) {
+    console.error("Error adding service:", error);
+    res.status(500).json({ message: "Server error while adding service" });
+  }
+});
+
 
 // DELETE - Delete a planner
 plannerRouter.delete('/planners/:id', authMiddleware, validatorMiddleware(deletePlannerValidator), async (req, res) => {
