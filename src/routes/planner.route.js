@@ -149,7 +149,7 @@ plannerRouter.put(
   authMiddleware,
   validatorMiddleware(updatePlannerValidator(true)),
   async (req, res) => {
-    const { id } = req.params; // Destructure the new IDs from the request body. Ensure they default to empty arrays.
+    const { id } = req.params;
     const {
       title,
       description,
@@ -164,9 +164,6 @@ plannerRouter.put(
         where: { id: parseInt(id) },
         include: {
           ticket: true,
-          attractions: true, // Make sure these are included to get current IDs
-          shows: true, // Make sure these are included to get current IDs
-          services: true, // Make sure these are included to get current IDs
         },
       });
 
@@ -174,7 +171,7 @@ plannerRouter.put(
         return res.status(404).json({ message: "Planner not found" });
       }
 
-      const ticketTypeId = planner.ticket.ticketTypeId; // Retrieve valid activities (this part is correct)
+      const ticketTypeId = planner.ticket.ticketTypeId;
 
       const validAttractions = await prisma.ticketTypeAttraction.findMany({
         where: { ticketTypeId },
@@ -189,34 +186,14 @@ plannerRouter.put(
         select: { serviceId: true },
       });
 
-      // --- FIX STARTS HERE ---
-
-      // Get current IDs from the planner object
-      const currentAttractionIds = planner.attractions.map((a) => a.id);
-      const currentShowIds = planner.shows.map((s) => s.id);
-      const currentServiceIds = planner.services.map((s) => s.id);
-
-      // Combine existing IDs with new IDs from the request body
-      // Use a Set to ensure uniqueness and then convert back to an array
-      const combinedAttractionIds = Array.from(
-        new Set([...currentAttractionIds, ...attractionIds])
-      );
-      const combinedShowIds = Array.from(
-        new Set([...currentShowIds, ...showIds])
-      );
-      const combinedServiceIds = Array.from(
-        new Set([...currentServiceIds, ...serviceIds])
-      ); // Filter only valid ones (this part is correct, but now operates on combined IDs)
-
-      // --- FIX ENDS HERE ---
-
-      const filteredAttractionIds = combinedAttractionIds.filter((id) =>
+      // Filtra solo gli ID validi in base al tipo di ticket
+      const filteredAttractionIds = attractionIds.filter((id) =>
         validAttractions.some((a) => a.attractionId === id)
       );
-      const filteredShowIds = combinedShowIds.filter((id) =>
+      const filteredShowIds = showIds.filter((id) =>
         validShows.some((s) => s.showId === id)
       );
-      const filteredServiceIds = combinedServiceIds.filter((id) =>
+      const filteredServiceIds = serviceIds.filter((id) =>
         validServices.some((s) => s.serviceId === id)
       );
 
@@ -258,6 +235,7 @@ plannerRouter.put(
     }
   }
 );
+
 
 // DELETE - Delete a planner
 plannerRouter.delete('/planners/:id', authMiddleware, validatorMiddleware(deletePlannerValidator), async (req, res) => {
