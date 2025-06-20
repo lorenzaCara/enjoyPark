@@ -94,7 +94,7 @@ plannerRouter.post('/planners', authMiddleware, validatorMiddleware(createPlanne
 });
 
 // GET - Get all planners
-plannerRouter.get('/planners', async (req, res) => {
+plannerRouter.get('/planners', authMiddleware, async (req, res) => {
   try {
     const planners = await prisma.planner.findMany({
       include: {
@@ -115,7 +115,7 @@ plannerRouter.get('/planners', async (req, res) => {
 });
 
 // GET - Get a planner by ID
-plannerRouter.get('/planners/:id', async (req, res) => {
+plannerRouter.get('/planners/:id', authMiddleware, async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -150,6 +150,7 @@ plannerRouter.put(
   validatorMiddleware(updatePlannerValidator(true)),
   async (req, res) => {
     const { id } = req.params;
+    const userId = req.user.id;
     const {
       title,
       description,
@@ -161,7 +162,10 @@ plannerRouter.put(
 
     try {
       const planner = await prisma.planner.findUnique({
-        where: { id: parseInt(id) },
+        where: {
+          id: parseInt(id),
+          userId, 
+        },
         include: {
           ticket: true,
         },
