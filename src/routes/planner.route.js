@@ -95,18 +95,19 @@ plannerRouter.post('/planners', authMiddleware, validatorMiddleware(createPlanne
 
 // GET - Get all planners
 plannerRouter.get('/planners', authMiddleware, async (req, res) => {
+  const userId = req.user.id;
   try {
     const planners = await prisma.planner.findMany({
+      where: { userId }, 
       include: {
         attractions: true,
         shows: true,
         services: true,
-        user: true,
         ticket: {
           include: { ticketType: true },
         },
       },
-    });
+});
     res.json(planners);
   } catch (error) {
     console.error('Error retrieving planners:', error);
