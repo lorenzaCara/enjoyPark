@@ -207,7 +207,10 @@ plannerRouter.put(
       }
 
       const updatedPlanner = await prisma.planner.update({
-        where: { id: parseInt(id) },
+        where: { 
+          id: parseInt(id),
+          userId
+         },
         data: {
           title,
           description,
@@ -244,10 +247,14 @@ plannerRouter.put(
 plannerRouter.patch('/planners/:id/add-attraction', authMiddleware, async (req, res) => {
   const { id } = req.params;
   const { attractionId } = req.body;
+  const userId = req.user.id;
 
   try {
     const planner = await prisma.planner.findUnique({
-      where: { id: parseInt(id) },
+      where: { 
+        id: parseInt(id),
+        userId,
+       },
       include: { ticket: true, attractions: true },
     });
 
@@ -272,7 +279,10 @@ plannerRouter.patch('/planners/:id/add-attraction', authMiddleware, async (req, 
     }
 
     const updated = await prisma.planner.update({
-      where: { id: parseInt(id) },
+      where: { 
+        id: parseInt(id),
+        userId
+       },
       data: {
         attractions: {
           connect: { id: attractionId },
@@ -388,15 +398,18 @@ plannerRouter.patch('/planners/:id/add-service', authMiddleware, async (req, res
 // DELETE - Delete a planner
 plannerRouter.delete('/planners/:id', authMiddleware, validatorMiddleware(deletePlannerValidator), async (req, res) => {
   const { id } = req.params;
+  const userId = req.user.id; 
 
   try {
-    // First delete any bookings (if you have ON DELETE RESTRICT)
     await prisma.serviceBooking.deleteMany({
       where: { plannerId: parseInt(id) },
     });
 
     await prisma.planner.delete({
-      where: { id: parseInt(id) },
+      where: {
+        id: parseInt(id),
+        userId, 
+      },
     });
 
     res.status(204).send();
