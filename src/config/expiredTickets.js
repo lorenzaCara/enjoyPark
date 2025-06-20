@@ -2,11 +2,11 @@ import cron from 'node-cron';
 import prisma from '../prisma/prismaClient.js';
 
 export function startExpireTicketsJob() {
-  cron.schedule('* * * * *', async () => {  // ogni minuto
-    console.log('Job cron attivato alle', new Date().toISOString());
+  cron.schedule('* * * * *', async () => {  // runs every minute
+    console.log('Cron job triggered at', new Date().toISOString());
     try {
       const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      today.setHours(0, 0, 0, 0); // reset time to start of the day
 
       const result = await prisma.ticket.updateMany({
         where: {
@@ -18,11 +18,11 @@ export function startExpireTicketsJob() {
         },
       });
 
-
-      console.log(`[${new Date().toISOString()}] Biglietti scaduti aggiornati: ${result.count}`);
+      console.log(`[${new Date().toISOString()}] Expired tickets updated: ${result.count}`);
     } catch (err) {
-      console.error('Errore nell’aggiornamento dei biglietti scaduti:', err);
+      console.error('Error while updating expired tickets:', err);
     }
   });
 }
+
 
