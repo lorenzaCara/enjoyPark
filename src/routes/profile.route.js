@@ -84,7 +84,6 @@ export const createProfileRouter = (gcsBucket, isGcsConfigured) => {
                         lastName: true,
                         email: true,
                         profileImage: true, // Restituisci il nuovo URL al frontend
-                        // ... altri campi che vuoi inviare al frontend
                     }
                 });
 
@@ -102,7 +101,7 @@ export const createProfileRouter = (gcsBucket, isGcsConfigured) => {
         blobStream.end(req.files.image.data);
     });
 
-    // --- MODIFICA DELL'ENDPOINT DI RECUPERO DELL'IMMAGINE PROFILO ---
+
     profileRouter.get('/profile/image', authMiddleware, async (req, res) => {
         try {
             const user = await prisma.user.findUnique({

@@ -94,7 +94,7 @@ plannerRouter.post('/planners', authMiddleware, validatorMiddleware(createPlanne
 });
 
 // GET - Get all planners
-plannerRouter.get('/planners', authMiddleware, async (req, res) => {
+plannerRouter.get('/planners', async (req, res) => {
   const userId = req.user.id;
   try {
     const planners = await prisma.planner.findMany({
