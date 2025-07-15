@@ -94,11 +94,9 @@ plannerRouter.post('/planners', authMiddleware, validatorMiddleware(createPlanne
 });
 
 // GET - Get all planners
-plannerRouter.get('/planners', authMiddleware, async (req, res) => {
-  const userId = req.user.id;
+plannerRouter.get('/planners', async (req, res) => {
   try {
     const planners = await prisma.planner.findMany({
-      where: { userId }, 
       include: {
         attractions: true,
         shows: true,
@@ -107,13 +105,14 @@ plannerRouter.get('/planners', authMiddleware, async (req, res) => {
           include: { ticketType: true },
         },
       },
-});
+    });
     res.json(planners);
   } catch (error) {
     console.error('Error retrieving planners:', error);
     res.status(500).json({ message: 'Server error while retrieving planners' });
   }
 });
+
 
 // GET - Get a planner by ID
 plannerRouter.get('/planners/:id', authMiddleware, async (req, res) => {
